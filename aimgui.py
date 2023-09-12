@@ -262,7 +262,7 @@ os.chdir(os.path.dirname(p))
 # 'sandstone', 'yeti', 'pulse', 'united', 'morph',
 # 'journal', 'darkly', 'superhero', 'solar', 'cyborg',
 # 'vapor', 'simplex', 'cerculean'
-root = Window("AI Image Generator V1.5", "superhero")
+root = Window("AI Image Generator V1.5", "darkly")
 
 def save_location(e=None):
     ''' executes at WM_DELETE_WINDOW event - see below '''
@@ -278,6 +278,6 @@ else:
     root.geometry("475x412") # WxH+left+top
 
 root.protocol("WM_DELETE_WINDOW", save_location)  # UNCOMMENT TO SAVE GEOMETRY INFO
-#root.resizable(0, 0) # no resize & removes maximize button
+root.resizable(0, 0) # no resize & removes maximize button
 Application(root)
 root.mainloop()
