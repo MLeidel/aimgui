@@ -314,7 +314,7 @@ if os.path.isfile("winfi"):
         lcoor = f.read()
     root.geometry(lcoor.strip())
 else:
-    root.geometry("475x412") # WxH+left+top
+    root.geometry("460x412") # WxH+left+top
 
 root.protocol("WM_DELETE_WINDOW", save_location)  # UNCOMMENT TO SAVE GEOMETRY INFO
 root.resizable(0, 0) # no resize & removes maximize button
