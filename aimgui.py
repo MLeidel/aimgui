@@ -5,18 +5,30 @@ AI Image GUI
 Generate Images based on text prompts or other images
 See: https://platform.openai.com/docs/api-reference/images
 Requires ENV variable GPTKEY set to YOUR OpenAI key
+date: November 2023
+    modified to current OpenAI v1.3.3 API specs
+    manual (read-only) aimgui.ini file to include:
+        browser = 0|1
+        File = 0|1
+        output = images/Image.png
+        cmodel = dall-e-2|dall-e-3
+        vmodel = dall-e-2
+        theme = darkly
+        size = 1024x1024
+        number = 1
 '''
 import os
 import sys
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter.font import Font
+import configparser
 import webbrowser
 from ttkbootstrap import *
 from ttkbootstrap.constants import *
 from ttkbootstrap.tooltip import ToolTip
 import requests
-import openai
+from openai import OpenAI
 import datetime
 
 class Application(Frame):
@@ -24,6 +36,18 @@ class Application(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent)
         self.pack(fill=BOTH, expand=True, padx=4, pady=4)
+
+        config = configparser.ConfigParser()
+        config.read('aimgui.ini')
+        self.MyBrowser = config['Main']['browser']
+        self.MyFile = config['Main']['file']
+        self.MyOutput = config['Main']['output']
+        self.MyCmodel = config['Main']['cmodel']  # no set in GUI
+        self.MyVmodel = config['Main']['vmodel']  # no set in GUI
+        self.MyTheme = config['Main']['theme']  # no set in GUI
+        self.MySize = config['Main']['size']
+        self.MyNumber = config['Main']['number']
+
         self.create_widgets()
 
     def create_widgets(self):
@@ -38,7 +62,7 @@ class Application(Frame):
         self.vlbl2 = StringVar()
         lbl = Label(self, textvariable=self.vlbl2)
         lbl.grid(row=2, column=1, sticky='e')
-        self.vlbl2.set('Output File Name')
+        self.vlbl2.set('Output Path/File')
 
         self.vlbl3 = StringVar()
         lbl = Label(self, textvariable=self.vlbl3)
@@ -65,16 +89,18 @@ class Application(Frame):
         self.vchkwww = IntVar()
         chkwww = Checkbutton(self, variable=self.vchkwww, text='Browser')
         chkwww.grid(row=1, column=2, sticky='e', padx=4, pady=4)
+        self.vchkwww.set(int(self.MyBrowser))  # from aimgui.ini
 
         self.vchkfile = IntVar()
         chkfile = Checkbutton(self, variable=self.vchkfile, text='File')
         chkfile.grid(row=1, column=3, sticky='w', padx=4, pady=4)
+        self.vchkfile.set(int(self.MyFile))  # from aimgui.ini
 
         self.vout_file = StringVar()
         # self.vout_file.trace("w", self.eventHandler)
         self.out_file = Entry(self, textvariable=self.vout_file, justify="right")
         self.out_file.grid(row=2, column=2, sticky='w', padx=4, pady=4)
-        self.vout_file.set("images/Image.png")
+        self.vout_file.set(self.MyOutput)  # from aimgui.ini
 
         btn_out_file = Button(self, text='Open',
                               command=self.btn_out_file_click, bootstyle='outline')
@@ -83,11 +109,11 @@ class Application(Frame):
         self.vspn = StringVar(value=0)
         spn = Spinbox(self, textvariable=self.vspn, from_=0, to=10, width=4)
         spn.grid(row=3, column=2, sticky='w', padx=4, pady=4)
-        self.vspn.set(2)
+        self.vspn.set(int(self.MyNumber))  # from aimgui.ini
 
         optionlist = ('', '1024x1024', '512x512', '256x256')
         self.vopt_size = StringVar()
-        self.vopt_size.set(optionlist[1])
+        self.vopt_size.set(optionlist[int(self.MySize)])  # from aimgui.ini
         opt_size = OptionMenu(self, self.vopt_size, *optionlist, bootstyle='outline')
         opt_size.grid(row=4, column=2, sticky='w', padx=4, pady=4)
 
@@ -162,32 +188,45 @@ class Application(Frame):
             return
 
         try:
+            client = OpenAI(
+            api_key = os.getenv("GPTKEY")  # openai API
+            )
+        except Exception as e:
+            messagebox.showerror("Could Not Read Key file",
+                       "Did you enter your Gpt Key?")
+            return
+
+        try:
+            # VARIATION
             if self.vvar_file.get() != "":  # generate variation of an image
 
                 filein = self.vvar_file.get()
                 if self.image_metrics(filein) is False:
                     return  # input image did not meet requirements
 
-                openai.api_key = os.getenv("GPTKEY")
-                response = openai.Image.create_variation(
-                  image=open(filein, "rb"),
-                  n=int(self.vspn.get()),
-                  size=self.vopt_size.get()
+                response = client.images.create_variation(
+                    # model = "dall-e-2" # default (Nov 2023) n=1-10
+                    model=self.MyVmodel,
+                    image=open(filein, "rb"),
+                    n=int(self.vspn.get()),
+                    size=self.vopt_size.get()
                 )
                 self.log_variation()
 
-            else:  # generate image via prompt
-
+            else:
+                # CREATE FROM PROMPT
                 prompt_text = self.prompt.get("1.0", END)
                 if len(prompt_text) < 4:
                     messagebox.showerror("AimGUI", "Missing Text Prompt")
                     return
 
-                openai.api_key = os.getenv('GPTKEY')
-                response = openai.Image.create(
-                  prompt=prompt_text,
-                  n=int(self.vspn.get()),
-                  size=self.vopt_size.get()
+                response = client.images.generate(
+                    # model="dall-e-1"  # n=1
+                    # model="dall-e-2" # n=1-10
+                    model=self.MyCmodel,
+                    prompt=prompt_text,
+                    n=int(self.vspn.get()),
+                    size=self.vopt_size.get()
                 )
                 self.log_prompt()
 
@@ -257,12 +296,12 @@ class Application(Frame):
 p = os.path.realpath(__file__)
 os.chdir(os.path.dirname(p))
 
-# THEMES
-# 'cosmo', 'flatly', 'litera', 'minty', 'lumen',
-# 'sandstone', 'yeti', 'pulse', 'united', 'morph',
-# 'journal', 'darkly', 'superhero', 'solar', 'cyborg',
-# 'vapor', 'simplex', 'cerculean'
-root = Window("AI Image Generator V1.5", "darkly")
+# get options that go into the window creation and title
+config = configparser.ConfigParser()
+config.read('aimgui.ini')
+MyTheme = config['Main']['theme']
+
+root = Window("AI Image Generator V1.3.3", MyTheme)
 
 def save_location(e=None):
     ''' executes at WM_DELETE_WINDOW event - see below '''

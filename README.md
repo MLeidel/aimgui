@@ -1,6 +1,8 @@
 # aimgui
 ### AI Image generation and variation desktop GUI
 
+#### OpenAI v1.3.3 API with dall-e-2|3
+
 aimgui.py is a desktop implementation of the openai API found at:
 
 https://platform.openai.com/docs/api-reference/images/create-edit
@@ -12,22 +14,19 @@ specify for the output to go to your default web browser or
 to files or both. Furthermore, you can run image variation
 on an existing image file (with no prompt.)
 
-A log file is updated with _prompt_ and image file names.
-
+A log file is updated with _prompt_ and image file names.  
+Edit the aimgui.ini file to set default values.
 
 256x256 | 512x512 | 1024x1024  
 These are the only image file sizes allowed for this model.
 
-
-
-
 ![aimgui desktop app](images/aimgui.png "aimgui.py")
-
 
 Before using this application Python 3.x must be installed.
 
-To install Python go to https://www.python.org/downloads/.
-Click Download Python 3.??? and follow the installation instructions.
+Use Python >=3.7.1  
+_make sure you're using the latest __OpenAI__ module_ v1.3.3
+
 
 Use the requirements.txt file to install any modules you may be missing.
 
