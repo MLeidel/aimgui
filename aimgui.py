@@ -7,15 +7,7 @@ See: https://platform.openai.com/docs/api-reference/images
 Requires ENV variable GPTKEY set to YOUR OpenAI key
 date: November 2023
     modified to current OpenAI v1.3.3 API specs
-    manual (read-only) aimgui.ini file to include:
-        browser = 0|1
-        File = 0|1
-        output = images/Image.png
-        cmodel = dall-e-2|dall-e-3
-        vmodel = dall-e-2
-        theme = darkly
-        size = 1024x1024
-        number = 1
+    manual (read-only) aimgui.ini file
 '''
 import os
 import sys
